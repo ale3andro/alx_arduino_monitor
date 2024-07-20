@@ -7,7 +7,14 @@ from pyexcel_ods3 import save_data
 from collections import OrderedDict
 import requests
 
-url = 'https://api.thingspeak.com/update?api_key=XZ4WW4NQTJVLQCJD'
+try:
+    apikeyfile = open("thingspeak-api-key.txt", "r")
+    apikey = apikeyfile.read()
+    print("Thingspeak api key:", apikey)
+except IOError:
+    exit("Αδυναμία ανοίγματος αρχείου thingspeak-api-key.txt")
+
+url = 'https://api.thingspeak.com/update?api_key=' + apikey
 
 def getTimeStamp():
     timestamp = datetime.now()

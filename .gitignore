@@ -2,4 +2,5 @@
 env/
 *.tmp
 *.pyc
+/thingspeak-api-key.txt
 
