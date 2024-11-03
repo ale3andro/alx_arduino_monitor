@@ -21,6 +21,9 @@ cd alx_arduino_logger
 source linuxenv/Scripts/activate
 (linuxenv) python3 pyread.py --port=<SerialPort> --baudrate==<BaudRate>
 
+Αν παραλείψεις το port, κάνει μια προσπάθεια να το βρεί μόνο του.
+Στο τέλος deactivate
+
 ### Windows
 
 env\Scripts\activate.bat # Ενεργοποίηση python virtual environment
@@ -32,3 +35,8 @@ env\Scripts\activate.bat # Ενεργοποίηση python virtual environment
 Αν δεν δηλωθεί port, γίνεται ανίχνευση αυτόματα, αν δεν δηλωθεί baudrate τότε το default είναι 115200.
 
 Αν δηλωθεί το upload, τότε γίνεται προσπάθεια upload στο API του thingspeak. Θα πρέπει να υπάρχει όμως το αρχείο thingspeak-api-key.txt μέσα στο οποίο υπάρχει το API key του thingspeak.
+
+
+### Σύνδεσμοι
+
+https://pyserial.readthedocs.io/en/latest/tools.html#serial.tools.list_ports.ListPortInfo
