@@ -3,18 +3,6 @@ from pprint import pprint
 import getopt, sys
 from pynput import keyboard
 from datetime import datetime
-from pyexcel_ods3 import save_data
-from collections import OrderedDict
-import requests
-
-try:
-    apikeyfile = open("thingspeak-api-key.txt", "r")
-    apikey = apikeyfile.read()
-    print("Thingspeak api key:", apikey)
-except IOError:
-    exit("Αδυναμία ανοίγματος αρχείου thingspeak-api-key.txt")
-
-url = 'https://api.thingspeak.com/update?api_key=' + apikey
 
 def getTimeStamp():
     timestamp = datetime.now()
@@ -37,11 +25,11 @@ def on_release(key):
         return False
         
 listeningSerial=True
+keyboardThreadStarted=False
 
 filename = getTimeStamp()
 
-data = OrderedDict() # from collections import OrderedDict
-data.update({"Δεδομένα": [ ["Ημερομηνία", "Ώρα", "Τιμή", "Κανάλι 0", "Κανάλι 1"] ]})
+boards = ['1A86:7523', '2341:0043'] # The first is R2 Uno board and the 2nd is the S1 board
 
 port = ''
 baudrate = 115200 # Default baudrate from Mind+ Arduino
@@ -73,14 +61,16 @@ ports = []
 ports = list(serial.tools.list_ports.comports())
 if port=='':
     print("Προσπάθεια εντοπισμού συνδεδεμένου Arduino...")
-    #for index, value in enumerate(sorted(ports)):
-    #    print(index, value)
-    #    print(index, '\t', value.name, '\t', value.manufacturer)
-        #if ('Arduino' in value.manufacturer):
-        #    port = value.name
-        #    print('Εντοπίστηκε Arduino στη θύρα:', port)
+    for index, value in enumerate(sorted(ports)):
+        for i in boards:
+            if (i in value.hwid):
+                port = '/dev/' + value.name
+                print('Εντοπίστηκε Arduino στη θύρα:', port)
 
-serialInst = serial.Serial()
+#port = '/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0'
+#port = '/dev/ttyUSB0'
+baud = 115200
+serialInst = serial.Serial(timeout=4)
 serialInst.baudrate = baudrate
 serialInst.port = port
 try:
@@ -91,25 +81,24 @@ except serial.serialutil.SerialException as error:
 
 print( ("Αναμονή για δεδομένα μέσω σειριακής θύρας % s με ταχύτητα % s. Για τερματισμό πάτησε το πλήκτρο ESC.") % (port, baudrate) )
 
-with keyboard.Listener(on_release=on_release) as listener:
-        listener.join()
+
+listener = keyboard.Listener(on_release=on_release)
+listener.start()
 
 while listeningSerial:
-        packet = serialInst.readline().decode('utf').rstrip('\n').strip()
+    print('alex')       
+    packet = serialInst.readline().decode('utf').rstrip('\n').strip()
+    if packet:
         print(getDate() + " " + getTime() + " Δεδομένα: " + packet)
-        if (packet[1]==':'):
-            if (packet[0]=='0'): # Κανάλι καταγραφής 0
-                curValue0 = float(packet[2:])
-                data['Δεδομένα'].append([getDate(), getTime(), '', packet[2:], ''])
-            if (packet[0]=='1'): # Κανάλι καταγραφής 1
-                curValue1 = float(packet[2:])
-                data['Δεδομένα'].append([getDate(), getTime(), '', '', packet[2:]])                    
-            if (curValue0!='' and curValue1!='' and upload): # Αποστολή δεδομένων στο thingspeak
-                full_url = url + "&field1=" + str(curValue0) + "&field2=" + str(curValue1)
-                r = requests.get(full_url)
-                print('Αποστολή στο thingspeak: ' + full_url)
-                curValue0 = curValue1 = ''
-        else: # Δεν υπάρχει αριθμός και άνω κάτω τελεία => Δεν γίνεται καταγραφή σε κανάλια, δεν γίνεται αποστολή στο thingspeak
-            data['Δεδομένα'].append([getDate(), getTime(), packet, '', ''])
-
-save_data("Καταγραφή_" + filename + ".ods", data)
+    '''
+    if (packet[1]==':'):
+        if (packet[0]=='0'): # Κανάλι καταγραφής 0
+            curValue0 = float(packet[2:])
+            data['Δεδομένα'].append([getDate(), getTime(), '', packet[2:], ''])
+        if (packet[0]=='1'): # Κανάλι καταγραφής 1
+            curValue1 = float(packet[2:])
+            data['Δεδομένα'].append([getDate(), getTime(), '', '', packet[2:]])                    
+        
+    else: # Δεν υπάρχει αριθμός και άνω κάτω τελεία => Δεν γίνεται καταγραφή σε κανάλια, δεν γίνεται αποστολή στο thingspeak
+        data['Δεδομένα'].append([getDate(), getTime(), packet, '', ''])
+    '''
