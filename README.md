@@ -16,9 +16,15 @@
 
 cd alx_arduino_logger
 
-(Windows) env\Scripts\activate.bat # Ενεργοποίηση python virtual environment
+### Linux
 
-(Windows) (env) py -m pyread --port=<Σειριακή θύρα> --baudrate==115200 --upload\
+source env/Scripts/activate
+
+### Windows
+
+env\Scripts\activate.bat # Ενεργοποίηση python virtual environment
+
+(env) py -m pyread --port=<Σειριακή θύρα> --baudrate==115200 --upload\
 
 Από τα παραπάνω arguments (port, baudrate, upload) υποχρεωτικό δεν είναι κανένα.
 

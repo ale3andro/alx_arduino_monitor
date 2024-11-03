@@ -1,5 +1,6 @@
 *.ods
 env/
+linuxenv/
 *.tmp
 *.pyc
 /thingspeak-api-key.txt
