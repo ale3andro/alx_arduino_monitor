@@ -5,6 +5,7 @@ bottle-websocket==0.2.9
 certifi==2024.7.4
 cffi==1.16.0
 charset-normalizer==3.3.2
+dearpygui==2.0.0
 Eel==0.17.0
 evdev==1.7.1
 future==1.0.0
