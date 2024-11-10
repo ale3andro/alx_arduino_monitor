@@ -6,7 +6,7 @@ from datetime import datetime
 import dearpygui.dearpygui as dpg
 import threading
 
-listeningSerial=True
+listeningSerial=False
 
 def getTimeStamp():
     timestamp = datetime.now()
@@ -40,9 +40,12 @@ def callback(sender, app_data):
     print(f"sender is: {sender}")
     print(f"app_data is: {app_data}")
     if (sender==button_exit):
-        dpg.destroy_context()
+        dpg.stop_dearpygui()
     else:
         print('button_run')
+        global listeningSerial
+        listeningSerial = True
+
         startMonitoring()
 
     #dpg.set_value(textInput0, app_data['current_path'])
@@ -50,12 +53,11 @@ def callback(sender, app_data):
     
 with dpg.window(label="", width=400, height=300, no_move=True, no_title_bar=True, no_resize=True, pos=[0, 0]):
     label0 = dpg.add_text('Περιέχομενα Σειριακής')
-    
     spacer0 = dpg.add_text("")
     label1 = dpg.add_text("SERIAL")
     spacer1 = dpg.add_text("")
     with dpg.group(horizontal=True) as group2:
-        button_run  = dpg.add_button(label="Εκτέλεση", width=200, callback=callback)
+        button_run  = dpg.add_button(label="Έναρξη", width=200, callback=callback)
         button_exit  = dpg.add_button(label="Έξοδος", width=200, callback=callback)
     
     dpg.bind_font(font1)
@@ -66,6 +68,10 @@ with dpg.window(label="", width=400, height=300, no_move=True, no_title_bar=True
     
 def updateSerialMessage(msg):
     dpg.set_value(label1, msg)
+
+
+def availablePorts():
+    return
 
 
 def startMonitoring():
@@ -116,6 +122,7 @@ def startMonitoring():
         serialInst.open()
     except serial.serialutil.SerialException as error:
         print( ("Αδυναμία σύνδεσης στη θύρα: (% s).. Έξοδος!") % (port) )
+        dpg.stop_dearpygui()
         exit(-2)
 
     print( ("Αναμονή για δεδομένα μέσω σειριακής θύρας % s με ταχύτητα % s. Για τερματισμό πάτησε το πλήκτρο ESC.") % (port, baudrate) )
