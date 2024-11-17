@@ -1,9 +1,17 @@
 import dearpygui.dearpygui as dpg
 import serial.tools.list_ports
+import random
 
+packet = 0
 serial_ports = []
+values_x = [0]
+values_y = []
+x_axis_limit = 20
+x_axis_increment = 1
 shouldOpenSerialPort = False
 shouldListenToSerialPort = False
+plot_dpg_handle = 0
+x_axis_dpg_handle = 0
 
 def callback(sender, app_data):
     #print(f"sender is: {sender}")
@@ -54,7 +62,7 @@ def startListening(port):
 serial_ports = scanSerialPorts()
 
 dpg.create_context()
-dpg.create_viewport(title='Arduino Serial Monitor', width=425, height=400, resizable= False)
+dpg.create_viewport(title='Arduino Serial Monitor', width=425, height=800, resizable= False)
 with dpg.font_registry():
     with dpg.font("font/Ubuntu.ttf",20) as font1:
         dpg.add_font_range(0x0370, 0x03FF)
@@ -64,7 +72,7 @@ with dpg.font_registry():
         dpg.add_font_range(0x0370, 0x03FF)
 dpg.setup_dearpygui()
 
-with dpg.window(label="", width=425, height=400, no_move=True, no_title_bar=True, no_resize=True, pos=[0, 0]):
+with dpg.window(label="", width=425, height=800, no_move=True, no_title_bar=True, no_resize=True, pos=[0, 0]):
     label0 = dpg.add_text("Διαθέσιμες Arduino θύρες")
     listbox_ports = dpg.add_listbox(items=serial_ports, num_items=2)
     spacer0 = dpg.add_text("")
@@ -79,6 +87,22 @@ with dpg.window(label="", width=425, height=400, no_move=True, no_title_bar=True
     with dpg.group(horizontal=True) as group2:
         button_run  = dpg.add_button(label="Έναρξη", width=200, callback=callback)
         button_exit  = dpg.add_button(label="Έξοδος", width=200, callback=callback)
+   
+    with dpg.plot(label="Φωτεινότητα", height=400, width=400, tag="alx_plot"):
+        # optionally create legend
+        dpg.add_plot_legend()
+
+        # REQUIRED: create x and y axes
+        dpg.add_plot_axis(dpg.mvXAxis, label="x")
+        x_axis_dpg_handle = dpg.last_item()
+        dpg.set_axis_limits(x_axis_dpg_handle, 0, x_axis_limit)
+        dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis")
+        dpg.set_axis_limits(dpg.last_item(), 0, 1024)
+
+        dpg.add_line_series([1, 2, 3], [10, 20, 30], label="Φ", parent="y_axis", tag="series_tag")
+
+    plot_dpg_handle = dpg.last_item()
+
     if len(serial_ports)==0:
         dpg.configure_item(button_run, enabled=False)
     dpg.bind_font(font1)
@@ -87,6 +111,8 @@ with dpg.window(label="", width=425, height=400, no_move=True, no_title_bar=True
     dpg.bind_item_font(spacer1, font2)
     dpg.bind_item_font(label1, font2)
     dpg.bind_item_font(label2, font3)
+
+    #print(dpg.get_item_configuration(x_axis_dpg_handle))
 
 dpg.show_viewport()
 
@@ -114,6 +140,28 @@ while dpg.is_dearpygui_running():
         if packet:
             #print("Δεδομένα: " + packet)
             dpg.set_value(label2, packet)
+            values_y.append(int(packet))
+            limit = int(x_axis_limit/x_axis_increment)
+            if (len(values_x) < (x_axis_limit/x_axis_increment)):
+                dpg.set_value(plot_dpg_handle, [values_x, values_y])
+            else:
+                dpg.set_value(plot_dpg_handle, [values_x[-1*limit:], values_y[-1*limit:]])
+                if (values_x[int(-1*limit/2)] > dpg.get_axis_limits(x_axis_dpg_handle)[1]/2):
+                    dpg.set_axis_limits(x_axis_dpg_handle, values_x[-10], values_x[-10] + x_axis_limit)
+            values_x.append(values_x[-1] + x_axis_increment)
+
+            '''
+            if (len(values_x)>1000):
+                values_x = values_x[-1000:]
+                values_y = values_y[-1000:]
+            dpg.set_value(plot, [values_x, values_y])
+            values_x.append(values_x[-1] + x_axis_increment)
+            if (values_x[-1]>=x_axis_limit):
+                values_x = [0]
+                values_y = []
+            '''
+    
+    
 
     dpg.render_dearpygui_frame()
 
