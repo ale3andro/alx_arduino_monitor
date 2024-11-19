@@ -28,4 +28,7 @@ https://earthly.dev/blog/pyinstaller/#:~:text=Using%20a%20Python%20Virtual%20Env
 pyinstaller quick start
 
 https://pyinstaller.org/en/stable/
+https://stackoverflow.com/questions/48757977/how-to-include-dependencies-from-venv-directory-when-running-pyinstaller-for-pro
+https://stackoverflow.com/questions/63585632/how-to-add-a-truetype-font-file-to-a-pyinstaller-executable-for-use-with-pygame
+
 
