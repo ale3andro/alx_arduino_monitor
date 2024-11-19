@@ -1,6 +1,6 @@
 import dearpygui.dearpygui as dpg
 import serial.tools.list_ports
-import random
+import platform
 
 packet = 0
 serial_ports = []
@@ -51,7 +51,10 @@ def scanSerialPorts():
             if (i in value.hwid):
                 for j in range(len(boards)):
                     if i==boards[j]:
-                        port = boards_descriptions[j] + " | " + '/dev/' + value.name
+                        if (platform.system()=='Linux'):
+                            port = boards_descriptions[j] + " | " + '/dev/' + value.name
+                        else:
+                            port = boards_descriptions[j] + " | " + value.name
                 #print('Εντοπίστηκε Arduino στη θύρα:', port)
                 arduino_ports.append(port)
     return arduino_ports
