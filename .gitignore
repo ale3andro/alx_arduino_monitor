@@ -4,7 +4,7 @@ linuxenv/
 *.tmp
 *.pyc
 /thingspeak-api-key.txt
-buid/
+build/
 dist/
 
 
