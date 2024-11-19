@@ -6,5 +6,7 @@ linuxenv/
 /thingspeak-api-key.txt
 build/
 dist/
+__pycache__/
+
 
 
