@@ -13,14 +13,6 @@ shouldListenToSerialPort = False
 plot_dpg_handle = 0
 x_axis_dpg_handle = 0
 
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
-
 def callback(sender, app_data):
     #print(f"sender is: {sender}")
     #print(f"app_data is: {app_data}")
@@ -70,10 +62,18 @@ def scanSerialPorts():
 def startListening(port):
     return
 
-serial_ports = scanSerialPorts()
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
 
+    return os.path.join(base_path, relative_path)
+
+serial_ports = scanSerialPorts()
+print(resource_path('font/Ubuntu.ttf'))
 dpg.create_context()
-dpg.create_viewport(title='Arduino Serial Monitor', width=425, height=800, resizable= False)
+dpg.create_viewport(title='ale3andro\'s Arduino Serial Monitor (v.0.1)', width=425, height=800, resizable= False)
 with dpg.font_registry():
     with dpg.font(resource_path("font/Ubuntu.ttf"),20) as font1:
         dpg.add_font_range(0x0370, 0x03FF)
