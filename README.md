@@ -12,7 +12,7 @@
 
 ## Showcase
 
-[!showcase](img/alx_arduino_monitor.gif)
+![showcase](img/alx_arduino_monitor.gif)
 
 
 ## Χρήση
