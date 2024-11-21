@@ -5,7 +5,7 @@ a = Analysis(
     ['alx_arduino_monitor.py'],
     pathex=[],
     binaries=[],
-    datas=[('./Ubuntu.ttf', 'font')],
+    datas=[('./Ubuntu.ttf', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

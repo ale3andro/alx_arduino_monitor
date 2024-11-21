@@ -17,11 +17,36 @@ cd alx_arduino_logger
 
 ### Linux
 
+01. Create the python virtual environment
+
+virtualenv linuxenv
+
+source linuxenv/bin/activate
+
+02. Install Linux requirements
+
+pip install -r requirements.txt
+
+03. Package app
+
+pyinstaller alx_arduino_monitor.spec
 
 
 ### Windows
 
-C:\Users\<USERNAME>\AppData\Local\Programs\Python\Python313\Scripts\pyinstaller.exe python_executable.py --paths env\Lib\site-packages
+01. Create the python virtual environment
+
+py -m venv env
+
+env\Scripts\activate
+
+02. Install Windows requirements
+
+py -m pip install -r requirements_windows.txt
+
+03. Package app
+
+C:\Users\<USERNAME>\AppData\Local\Programs\Python\Python313\Scripts\pyinstaller.exe alx_arduino_monitor_windows.spec
 
 https://earthly.dev/blog/pyinstaller/#:~:text=Using%20a%20Python%20Virtual%20Environment%20with%20PyInstaller%201,and%20Executable%20...%204%20Testing%20the%20Executable%20
 
