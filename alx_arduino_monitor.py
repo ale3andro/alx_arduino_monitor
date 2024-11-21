@@ -71,15 +71,14 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 serial_ports = scanSerialPorts()
-print(resource_path('font/Ubuntu.ttf'))
 dpg.create_context()
 dpg.create_viewport(title='ale3andro\'s Arduino Serial Monitor (v.0.1)', width=425, height=800, resizable= False)
 with dpg.font_registry():
-    with dpg.font(resource_path("font/Ubuntu.ttf"),20) as font1:
+    with dpg.font(resource_path("Ubuntu.ttf"),20) as font1:
         dpg.add_font_range(0x0370, 0x03FF)
-    with dpg.font(resource_path("font/Ubuntu.ttf"),28) as font2:
+    with dpg.font(resource_path("Ubuntu.ttf"),28) as font2:
         dpg.add_font_range(0x0370, 0x03FF)
-    with dpg.font(resource_path("font/Ubuntu.ttf"),50) as font3:
+    with dpg.font(resource_path("Ubuntu.ttf"),50) as font3:
         dpg.add_font_range(0x0370, 0x03FF)
 dpg.setup_dearpygui()
 
