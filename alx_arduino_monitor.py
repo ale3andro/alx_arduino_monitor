@@ -124,6 +124,11 @@ with dpg.window(label="", width=425, height=800, no_move=True, no_title_bar=True
 
     #print(dpg.get_item_configuration(x_axis_dpg_handle))
 
+with dpg.theme() as disabled_theme:
+    with dpg.theme_component(dpg.mvButton, enabled_state=False):
+        dpg.add_theme_color(dpg.mvThemeCol_Text, [255, 255, 255])
+        dpg.add_theme_color(dpg.mvThemeCol_Button, [255, 10, 10])
+dpg.bind_theme(disabled_theme)
 dpg.show_viewport()
 
 # below replaces, start_dearpygui()
