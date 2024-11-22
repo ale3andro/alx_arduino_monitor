@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='alx_arduino_monitor_v01',
+    name='alx_arduino_monitor_v02',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
