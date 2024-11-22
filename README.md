@@ -10,9 +10,13 @@
 
 Σε περίπτωση που τα δεδομένα είναι αριθμητικά, τότε εμφανίζει και ένα διάγραμμα.
 
+## Changelog
+
+** 2024.11.22 ** | Έκδοση 0.2 - Επανασχεδίαση του GUI
+
 ## Showcase
 
-![showcase](img/alx_arduino_monitor.gif)
+![showcase](img/alx_arduino_monitor_0.2.gif)
 
 
 ## Χρήση

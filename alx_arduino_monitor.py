@@ -12,34 +12,44 @@ shouldOpenSerialPort = False
 shouldListenToSerialPort = False
 plot_dpg_handle = 0
 x_axis_dpg_handle = 0
+window0 = window1 = popup = button_start_monitoring = 0
 
 def callback(sender, app_data):
     #print(f"sender is: {sender}")
     #print(f"app_data is: {app_data}")
+    global shouldOpenSerialPort
+    global shouldListenToSerialPort
     if (sender==button_exit):
-        dpg.stop_dearpygui()
-    elif (sender==button_run):
-        #print(dpg.get_value(listbox_ports))
-        #print(dpg.get_item_configuration(listbox_ports))
-        global shouldOpenSerialPort
-        global shouldListenToSerialPort
-        if (dpg.get_item_configuration(button_run)['label']=='Έναρξη'):
-            dpg.configure_item(button_run, label="Διακοπή")
+        if (dpg.get_item_configuration(button_exit)['label']=='Έξοδος'):
+            dpg.stop_dearpygui()
+        elif (dpg.get_item_configuration(button_exit)['label']=='Διακοπή'):
+            shouldListenToSerialPort = False
+            dpg.configure_item(button_exit, label="Έξοδος")
+
+    elif (sender==button_start_monitoring):
+        dpg.configure_item("modal_id", show=False) 
+        #if (shouldOpenSerialPort==False):
+        #        shouldOpenSerialPort = True
+        if (dpg.get_item_configuration(button_exit)['label']=='Έξοδος'):
+            dpg.configure_item(button_exit, label="Διακοπή")
             if (shouldOpenSerialPort==False):
                 shouldOpenSerialPort = True
-            
-            startListening(dpg.get_value(listbox_ports))
         else:
-            dpg.configure_item(button_run, label="Έναρξη")
+            dpg.configure_item(button_exit, label="Έξοδος")
             shouldListenToSerialPort = False
 
     elif (sender==button_checkSerial):
         serial_ports = scanSerialPorts()
         dpg.configure_item(listbox_ports, items=serial_ports)
         if len(serial_ports)==0:
-            dpg.configure_item(button_run, enabled=False)
+            dpg.configure_item(button_select_serial_port, enabled=False)
         else:
-            dpg.configure_item(button_run, enabled=True)
+            dpg.configure_item(button_select_serial_port, enabled=True)
+    
+    elif (sender==button_select_serial_port):
+        if (not shouldListenToSerialPort):
+            dpg.configure_item("modal_id", show=True)
+        
         
 def scanSerialPorts():
     boards = ['1A86:7523', '2341:0043'] # The first is R2 Uno board and the 2nd is the S1 board
@@ -59,9 +69,6 @@ def scanSerialPorts():
                 arduino_ports.append(port)
     return arduino_ports
 
-def startListening(port):
-    return
-
 def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
@@ -70,9 +77,8 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-serial_ports = scanSerialPorts()
 dpg.create_context()
-dpg.create_viewport(title='ale3andro\'s Arduino Serial Monitor (v.0.1)', width=425, height=800, resizable= False)
+dpg.create_viewport(title='ale3andro\'s Arduino Serial Monitor (v.0.2)', width=830, height=450, resizable= False)
 with dpg.font_registry():
     with dpg.font(resource_path("Ubuntu.ttf"),20) as font1:
         dpg.add_font_range(0x0370, 0x03FF)
@@ -82,23 +88,30 @@ with dpg.font_registry():
         dpg.add_font_range(0x0370, 0x03FF)
 dpg.setup_dearpygui()
 
-with dpg.window(label="", width=425, height=800, no_move=True, no_title_bar=True, no_resize=True, pos=[0, 0]):
-    label0 = dpg.add_text("Διαθέσιμες Arduino θύρες")
-    listbox_ports = dpg.add_listbox(items=serial_ports, num_items=2)
+with dpg.window(label="", width=300, height=450, no_move=True, no_title_bar=True, no_resize=True, pos=[0, 0]):
+    window0 = dpg.last_item()
     spacer0 = dpg.add_text("")
-
-    button_checkSerial  = dpg.add_button(label="Έλεγχος θυρών", width=200, callback=callback)
-
-    label1 = dpg.add_input_text(default_value='Περιέχομενα Σειριακής')
+    label1 = dpg.add_input_text(default_value='Περιέχομενα Σειριακής', width=285)
     spacer1 = dpg.add_text("")
     
     label2 = dpg.add_text("0")
     spacer2 = dpg.add_text("")
     with dpg.group(horizontal=True) as group2:
-        button_run  = dpg.add_button(label="Έναρξη", width=200, callback=callback)
-        button_exit  = dpg.add_button(label="Έξοδος", width=200, callback=callback)
-   
-    with dpg.plot(label="Φωτεινότητα", height=400, width=400, tag="alx_plot"):
+        button_select_serial_port  = dpg.add_button(label="Επιλογή θύρας", width=140, callback=callback)
+        with dpg.popup(dpg.last_item(), modal=True, no_move=True, min_size=[200,200], tag="modal_id"):
+            popup = dpg.last_item()
+            serial_ports = scanSerialPorts()
+            label0 = dpg.add_text("Διαθέσιμες Arduino θύρες")
+            listbox_ports = dpg.add_listbox(items=serial_ports, num_items=2)
+            with dpg.group(horizontal=True) as group2_0:
+                button_start_monitoring = dpg.add_button(label="Έναρξη", width=195, callback=callback)
+                #dpg.add_button(label="Check again", width=195, callback=lambda: dpg.configure_item("modal_id", show=False))
+                button_checkSerial  = dpg.add_button(label="Έλεγχος θυρών", width=195, callback=callback)
+        button_exit  = dpg.add_button(label="Έξοδος", width=140, callback=callback)
+
+with dpg.window(label="", width=530, height=450, no_move=True, no_title_bar=True, no_resize=True, pos=[300, 0]):
+    window1 = dpg.last_item()
+    with dpg.plot(label="Φωτεινότητα", height=430, width=520, tag="alx_plot"):
         # optionally create legend
         dpg.add_plot_legend()
 
@@ -114,7 +127,7 @@ with dpg.window(label="", width=425, height=800, no_move=True, no_title_bar=True
     plot_dpg_handle = dpg.last_item()
 
     if len(serial_ports)==0:
-        dpg.configure_item(button_run, enabled=False)
+        dpg.configure_item(button_select_serial_port, enabled=False)
     dpg.bind_font(font1)
     dpg.bind_item_font(label0, font2)
     dpg.bind_item_font(spacer0, font2)
