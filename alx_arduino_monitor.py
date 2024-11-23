@@ -32,8 +32,6 @@ def callback(sender, app_data):
 
     elif (sender==button_start_monitoring):
         dpg.configure_item("modal_id", show=False) 
-        #if (shouldOpenSerialPort==False):
-        #        shouldOpenSerialPort = True
         if (dpg.get_item_configuration(button_exit)['label']=='Έξοδος'):
             dpg.configure_item(button_exit, label="Διακοπή")
             if (shouldOpenSerialPort==False):
@@ -49,7 +47,6 @@ def callback(sender, app_data):
                     isSerialContentsText = True
                 dpg.configure_item(plot_dpg_handle, label=dpg.get_value(label1))
                 shouldOpenSerialPort = True
-
         else:
             dpg.configure_item(button_exit, label="Έξοδος")
             shouldListenToSerialPort = False
@@ -58,15 +55,14 @@ def callback(sender, app_data):
         serial_ports = scanSerialPorts()
         dpg.configure_item(listbox_ports, items=serial_ports)
         if len(serial_ports)==0:
-            dpg.configure_item(button_select_serial_port, enabled=False)
+            dpg.configure_item(button_start_monitoring, enabled=False)
         else:
-            dpg.configure_item(button_select_serial_port, enabled=True)
+            dpg.configure_item(button_start_monitoring, enabled=True)
     
     elif (sender==button_select_serial_port):
         if (not shouldListenToSerialPort):
             dpg.configure_item("modal_id", show=True)
-        
-        
+         
 def scanSerialPorts():
     boards = ['1A86:7523', '2341:0043'] # The first is R2 Uno board and the 2nd is the S1 board
     boards_descriptions = ["R2", "S1"]
@@ -81,7 +77,6 @@ def scanSerialPorts():
                             port = boards_descriptions[j] + " | " + '/dev/' + value.name
                         else:
                             port = boards_descriptions[j] + " | " + value.name
-                #print('Εντοπίστηκε Arduino στη θύρα:', port)
                 arduino_ports.append(port)
     return arduino_ports
 
@@ -123,15 +118,17 @@ with dpg.window(label="", width=300, height=450, no_move=True, no_title_bar=True
             listbox_ports = dpg.add_listbox(items=serial_ports, num_items=2)
             with dpg.group(horizontal=True) as group2_0:
                 button_start_monitoring = dpg.add_button(label="Έναρξη", width=195, callback=callback)
-                #dpg.add_button(label="Check again", width=195, callback=lambda: dpg.configure_item("modal_id", show=False))
                 button_checkSerial  = dpg.add_button(label="Έλεγχος θυρών", width=195, callback=callback)
         button_exit  = dpg.add_button(label="Έξοδος", width=140, callback=callback)
+        if len(serial_ports)==0:
+            dpg.configure_item(button_start_monitoring, enabled=False)
+        else:
+            dpg.configure_item(button_start_monitoring, enabled=True)
 
 with dpg.window(label="", width=530, height=450, no_move=True, no_title_bar=True, no_resize=True, pos=[300, 0]):
     window1 = dpg.last_item()
     with dpg.plot(label="Περιεχόμενα Σειριακής", height=430, width=520, tag="alx_plot"):
         plot_dpg_handle = dpg.last_item()
-        #dpg.add_plot_legend()
         dpg.add_plot_axis(dpg.mvXAxis, label="Άξονας x")
         x_axis_dpg_handle = dpg.last_item()
         dpg.set_axis_limits(x_axis_dpg_handle, 0, x_axis_limit)
@@ -140,9 +137,7 @@ with dpg.window(label="", width=530, height=450, no_move=True, no_title_bar=True
         dpg.set_axis_limits(dpg.last_item(), 0, 1024)
         dpg.add_line_series([1], [512], label="Φ", parent="y_axis", tag="series_tag")
         plot_line_dpg_handle = dpg.last_item()
-    
-    if len(serial_ports)==0:
-        dpg.configure_item(button_select_serial_port, enabled=False)
+
     dpg.bind_font(font1)
     dpg.bind_item_font(label0, font2)
     dpg.bind_item_font(spacer0, font2)
@@ -150,8 +145,6 @@ with dpg.window(label="", width=530, height=450, no_move=True, no_title_bar=True
     dpg.bind_item_font(label1, font2)
     dpg.bind_item_font(label2, font3)
     dpg.bind_item_font(label3, font2)
-
-    #print(dpg.get_item_configuration(x_axis_dpg_handle))
 
 with dpg.theme() as disabled_theme:
     with dpg.theme_component(dpg.mvButton, enabled_state=False):
@@ -162,9 +155,6 @@ dpg.show_viewport()
 
 # below replaces, start_dearpygui()
 while dpg.is_dearpygui_running():
-    # insert here any code you would like to run in the render loop
-    # you can manually stop by using stop_dearpygui()
-    #print("this will run every frame")
     if shouldOpenSerialPort:
         serialInst = serial.Serial(timeout=4)
         serialInst.baudrate = 115200
