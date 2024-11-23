@@ -11,14 +11,18 @@ x_axis_increment = 1
 shouldOpenSerialPort = False
 shouldListenToSerialPort = False
 plot_dpg_handle = 0
-x_axis_dpg_handle = 0
+plot_line_dpg_handle = 0
+measure_listbox_dpg_handle = 0
+x_axis_dpg_handle = y_axis_dpg_handle = 0
 window0 = window1 = popup = button_start_monitoring = 0
+isSerialContentsText = False
 
 def callback(sender, app_data):
     #print(f"sender is: {sender}")
     #print(f"app_data is: {app_data}")
     global shouldOpenSerialPort
     global shouldListenToSerialPort
+    global isSerialContentsText
     if (sender==button_exit):
         if (dpg.get_item_configuration(button_exit)['label']=='Έξοδος'):
             dpg.stop_dearpygui()
@@ -33,7 +37,19 @@ def callback(sender, app_data):
         if (dpg.get_item_configuration(button_exit)['label']=='Έξοδος'):
             dpg.configure_item(button_exit, label="Διακοπή")
             if (shouldOpenSerialPort==False):
+                isSerialContentsText = False
+                # Αλλαγή κλίμακας άξονα y
+                if (dpg.get_value(measure_listbox_dpg_handle)[0]=='1'):
+                    dpg.set_value(label1, "Θερμοκρασία")
+                    dpg.set_axis_limits(y_axis_dpg_handle, -10, 50)    
+                elif (dpg.get_value(measure_listbox_dpg_handle)[0]=='2'):
+                    dpg.set_value(label1, "Υγρασία Περιβάλλοντος")
+                    dpg.set_axis_limits(y_axis_dpg_handle, 0, 110)
+                elif (dpg.get_value(measure_listbox_dpg_handle)[0]=='3'):
+                    isSerialContentsText = True
+                dpg.configure_item(plot_dpg_handle, label=dpg.get_value(label1))
                 shouldOpenSerialPort = True
+
         else:
             dpg.configure_item(button_exit, label="Έξοδος")
             shouldListenToSerialPort = False
@@ -90,6 +106,8 @@ dpg.setup_dearpygui()
 
 with dpg.window(label="", width=300, height=450, no_move=True, no_title_bar=True, no_resize=True, pos=[0, 0]):
     window0 = dpg.last_item()
+    label3 = dpg.add_text("Θέλω να μετρήσω:")
+    measure_listbox_dpg_handle = dpg.add_listbox(["0.Αναλογικές τιμές (max:1024)", "1.Θερμοκρασία (min:-10, max:50)", "2.Υγρασία (max:110%)", "3.Κείμενο (χωρίς γράφημα)"], width=285, num_items=4)
     spacer0 = dpg.add_text("")
     label1 = dpg.add_input_text(default_value='Περιέχομενα Σειριακής', width=285)
     spacer1 = dpg.add_text("")
@@ -111,21 +129,18 @@ with dpg.window(label="", width=300, height=450, no_move=True, no_title_bar=True
 
 with dpg.window(label="", width=530, height=450, no_move=True, no_title_bar=True, no_resize=True, pos=[300, 0]):
     window1 = dpg.last_item()
-    with dpg.plot(label="Φωτεινότητα", height=430, width=520, tag="alx_plot"):
-        # optionally create legend
-        dpg.add_plot_legend()
-
-        # REQUIRED: create x and y axes
-        dpg.add_plot_axis(dpg.mvXAxis, label="x")
+    with dpg.plot(label="Περιεχόμενα Σειριακής", height=430, width=520, tag="alx_plot"):
+        plot_dpg_handle = dpg.last_item()
+        #dpg.add_plot_legend()
+        dpg.add_plot_axis(dpg.mvXAxis, label="Άξονας x")
         x_axis_dpg_handle = dpg.last_item()
         dpg.set_axis_limits(x_axis_dpg_handle, 0, x_axis_limit)
-        dpg.add_plot_axis(dpg.mvYAxis, label="y", tag="y_axis")
+        dpg.add_plot_axis(dpg.mvYAxis, label="Άξονας y", tag="y_axis")
+        y_axis_dpg_handle = dpg.last_item()
         dpg.set_axis_limits(dpg.last_item(), 0, 1024)
-
-        dpg.add_line_series([1, 2, 3], [10, 20, 30], label="Φ", parent="y_axis", tag="series_tag")
-
-    plot_dpg_handle = dpg.last_item()
-
+        dpg.add_line_series([1], [512], label="Φ", parent="y_axis", tag="series_tag")
+        plot_line_dpg_handle = dpg.last_item()
+    
     if len(serial_ports)==0:
         dpg.configure_item(button_select_serial_port, enabled=False)
     dpg.bind_font(font1)
@@ -134,6 +149,7 @@ with dpg.window(label="", width=530, height=450, no_move=True, no_title_bar=True
     dpg.bind_item_font(spacer1, font2)
     dpg.bind_item_font(label1, font2)
     dpg.bind_item_font(label2, font3)
+    dpg.bind_item_font(label3, font2)
 
     #print(dpg.get_item_configuration(x_axis_dpg_handle))
 
@@ -166,30 +182,19 @@ while dpg.is_dearpygui_running():
     if shouldListenToSerialPort:
         packet = serialInst.readline().decode('utf').rstrip('\n').strip()
         if packet:
-            #print("Δεδομένα: " + packet)
             dpg.set_value(label2, packet)
             values_y.append(int(packet))
             limit = int(x_axis_limit/x_axis_increment)
             if (len(values_x) < (x_axis_limit/x_axis_increment)):
-                dpg.set_value(plot_dpg_handle, [values_x, values_y])
+                if (not isSerialContentsText):
+                    dpg.set_value(plot_line_dpg_handle, [values_x, values_y])
             else:
-                dpg.set_value(plot_dpg_handle, [values_x[-1*limit:], values_y[-1*limit:]])
+                if (not isSerialContentsText):
+                    dpg.set_value(plot_line_dpg_handle, [values_x[-1*limit:], values_y[-1*limit:]])
                 if (values_x[int(-1*limit/2)] > dpg.get_axis_limits(x_axis_dpg_handle)[1]/2):
-                    dpg.set_axis_limits(x_axis_dpg_handle, values_x[-10], values_x[-10] + x_axis_limit)
+                    if (not isSerialContentsText):
+                        dpg.set_axis_limits(x_axis_dpg_handle, values_x[-10], values_x[-10] + x_axis_limit)
             values_x.append(values_x[-1] + x_axis_increment)
-
-            '''
-            if (len(values_x)>1000):
-                values_x = values_x[-1000:]
-                values_y = values_y[-1000:]
-            dpg.set_value(plot, [values_x, values_y])
-            values_x.append(values_x[-1] + x_axis_increment)
-            if (values_x[-1]>=x_axis_limit):
-                values_x = [0]
-                values_y = []
-            '''
-    
-    
 
     dpg.render_dearpygui_frame()
 
