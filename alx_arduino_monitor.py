@@ -173,18 +173,19 @@ while dpg.is_dearpygui_running():
         packet = serialInst.readline().decode('utf').rstrip('\n').strip()
         if packet:
             dpg.set_value(label2, packet)
-            values_y.append(int(packet))
-            limit = int(x_axis_limit/x_axis_increment)
-            if (len(values_x) < (x_axis_limit/x_axis_increment)):
-                if (not isSerialContentsText):
+            if (not isSerialContentsText):
+                if ('.' in packet):
+                    values_y.append(int(packet[:packet.rfind('.')]))
+                else:
+                    values_y.append(int(packet))
+                limit = int(x_axis_limit/x_axis_increment)
+                if (len(values_x) < (x_axis_limit/x_axis_increment)):
                     dpg.set_value(plot_line_dpg_handle, [values_x, values_y])
-            else:
-                if (not isSerialContentsText):
+                else:
                     dpg.set_value(plot_line_dpg_handle, [values_x[-1*limit:], values_y[-1*limit:]])
-                if (values_x[int(-1*limit/2)] > dpg.get_axis_limits(x_axis_dpg_handle)[1]/2):
-                    if (not isSerialContentsText):
+                    if (values_x[int(-1*limit/2)] > dpg.get_axis_limits(x_axis_dpg_handle)[1]/2):
                         dpg.set_axis_limits(x_axis_dpg_handle, values_x[-10], values_x[-10] + x_axis_limit)
-            values_x.append(values_x[-1] + x_axis_increment)
+                values_x.append(values_x[-1] + x_axis_increment)
 
     dpg.render_dearpygui_frame()
 
