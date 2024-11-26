@@ -1,12 +1,11 @@
 import serial.tools.list_ports
-from pprint import pprint
 import getopt, sys
-from pynput import keyboard
 from datetime import datetime
 from pyexcel_ods3 import save_data
 from collections import OrderedDict
 import requests, time
 import threading, platform
+from requests.exceptions import HTTPError
 
 try:
     apikeyfile = open("thingspeak-api-key.txt", "r")
@@ -28,14 +27,6 @@ def getDate():
 def getTime():
     timestamp = datetime.now()
     return timestamp.strftime("%H-%M-%S")
-
-def on_release(key):
-    if key == keyboard.Key.esc:
-        # Stop listener
-        print("Πατήθηκε το ESC, τερματισμός καταγραφής δεδομένων σειριακής.")
-        global listeningSerial
-        listeningSerial=False
-        return False
 
 def scanSerialPorts():
     boards = ['1A86:7523', '2341:0043'] # The first is R2 Uno board and the 2nd is the S1 board
@@ -69,6 +60,7 @@ def alx_thread_fnc(event, port, baudrate, upload):
     filename = getTimeStamp()
     data = OrderedDict() # from collections import OrderedDict
     data.update({"Δεδομένα": [ ["Ημερομηνία", "Ώρα", "Τιμή", "Κανάλι 0", "Κανάλι 1"] ]})
+    curValue0 = curValue1 = ''
     
     while True:
         packet = serialInst.readline().decode('utf').rstrip('\n').strip()
@@ -82,8 +74,16 @@ def alx_thread_fnc(event, port, baudrate, upload):
                 data['Δεδομένα'].append([getDate(), getTime(), '', '', packet[2:]])                    
             if (curValue0!='' and curValue1!='' and upload): # Αποστολή δεδομένων στο thingspeak
                 full_url = url + "&field1=" + str(curValue0) + "&field2=" + str(curValue1)
-                r = requests.get(full_url)
-                print('Αποστολή στο thingspeak: ' + full_url)
+                try:
+                    print('Αποστολή στο thingspeak: ' + full_url)
+                    r = requests.get(full_url)
+                    r.raise_for_status()
+                except HTTPError as http_err:
+                    print(f"HTTP error occurred: {http_err}")
+                except Exception as err:
+                    print(f"Other error occurred: {err}")
+                else:
+                    print("Επιτυχημένη αποστολή!")
                 curValue0 = curValue1 = ''
         else: # Δεν υπάρχει αριθμός και άνω κάτω τελεία => Δεν γίνεται καταγραφή σε κανάλια, δεν γίνεται αποστολή στο thingspeak
             data['Δεδομένα'].append([getDate(), getTime(), packet, '', ''])
@@ -101,8 +101,6 @@ upload = False # Default value - not uploading to Thingspeak
 argumentList = sys.argv[1:]
 options = "b:p:u"
 long_options = ["baudrate=", "port=","upload"]
-
-curValue0 = curValue1 = ''
 
 try:
     arguments, values = getopt.getopt(argumentList, options, long_options)
