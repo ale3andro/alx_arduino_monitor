@@ -5,7 +5,7 @@ from pynput import keyboard
 from datetime import datetime
 from pyexcel_ods3 import save_data
 from collections import OrderedDict
-import requests
+import requests, time
 import threading, platform
 
 try:
@@ -64,7 +64,7 @@ def alx_thread_fnc(event, port, baudrate, upload):
         print( ("Αδυναμία σύνδεσης στη θύρα: (% s).. Έξοδος!") % (port) )
         exit(-2)
 
-    print( ("Αναμονή για δεδομένα μέσω σειριακής θύρας % s με ταχύτητα % s. Για τερματισμό πάτησε το πλήκτρο ESC.") % (port, baudrate) )
+    print( ("Αναμονή για δεδομένα μέσω σειριακής θύρας % s με ταχύτητα % s.") % (port, baudrate) )
     
     filename = getTimeStamp()
     data = OrderedDict() # from collections import OrderedDict
@@ -72,7 +72,7 @@ def alx_thread_fnc(event, port, baudrate, upload):
     
     while True:
         packet = serialInst.readline().decode('utf').rstrip('\n').strip()
-        print(getDate() + " " + getTime() + " Δεδομένα: " + packet)
+        print(getDate() + " " + getTime() + " Δεδομένα: " + packet + " | Πάτησε Enter για να σταματήσει η καταγραφή")
         if (packet[1]==':'):
             if (packet[0]=='0'): # Κανάλι καταγραφής 0
                 curValue0 = float(packet[2:])
@@ -136,5 +136,6 @@ print(port, baudrate, upload)
 event = threading.Event()
 x = threading.Thread(target=alx_thread_fnc, args=(event, port, baudrate, upload))
 x.start()
-input("Press Enter to stop monitoring")
+time.sleep(5)
+input("")
 event.set()
