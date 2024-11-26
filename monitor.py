@@ -5,6 +5,7 @@ from pynput import keyboard
 from datetime import datetime
 import dearpygui.dearpygui as dpg
 import threading
+import time
 
 listeningSerial=False
 
