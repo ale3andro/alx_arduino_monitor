@@ -45,7 +45,7 @@ def scanSerialPorts():
                 arduino_ports.append(port)
     return arduino_ports
 
-def alx_thread_fnc(event, port, baudrate, upload):
+def alx_thread_fnc(event, filename, port, baudrate, upload):
     serialInst = serial.Serial()
     serialInst.baudrate = baudrate
     serialInst.port = port
@@ -57,7 +57,6 @@ def alx_thread_fnc(event, port, baudrate, upload):
 
     print( ("Αναμονή για δεδομένα μέσω σειριακής θύρας % s με ταχύτητα % s.") % (port, baudrate) )
     
-    filename = getTimeStamp()
     data = OrderedDict() # from collections import OrderedDict
     data.update({"Δεδομένα": [ ["Ημερομηνία", "Ώρα", "Τιμή", "Κανάλι 0", "Κανάλι 1"] ]})
     curValue0 = curValue1 = ''
@@ -69,9 +68,11 @@ def alx_thread_fnc(event, port, baudrate, upload):
             if (packet[0]=='0'): # Κανάλι καταγραφής 0
                 curValue0 = float(packet[2:])
                 data['Δεδομένα'].append([getDate(), getTime(), '', packet[2:], ''])
+                save_data("Καταγραφή_" + filename + ".ods", data)
             if (packet[0]=='1'): # Κανάλι καταγραφής 1
                 curValue1 = float(packet[2:])
-                data['Δεδομένα'].append([getDate(), getTime(), '', '', packet[2:]])                    
+                data['Δεδομένα'].append([getDate(), getTime(), '', '', packet[2:]])
+                save_data("Καταγραφή_" + filename + ".ods", data)                   
             if (curValue0!='' and curValue1!='' and upload): # Αποστολή δεδομένων στο thingspeak
                 full_url = url + "&field1=" + str(curValue0) + "&field2=" + str(curValue1)
                 try:
@@ -82,21 +83,19 @@ def alx_thread_fnc(event, port, baudrate, upload):
                     print(f"HTTP error occurred: {http_err}")
                 except Exception as err:
                     print(f"Other error occurred: {err}")
-                else:
+                else:   
                     print("Επιτυχημένη αποστολή!")
                 curValue0 = curValue1 = ''
         else: # Δεν υπάρχει αριθμός και άνω κάτω τελεία => Δεν γίνεται καταγραφή σε κανάλια, δεν γίνεται αποστολή στο thingspeak
             data['Δεδομένα'].append([getDate(), getTime(), packet, '', ''])
+            save_data("Καταγραφή_" + filename + ".ods", data)
         if (event.is_set()):
-            break
-    
-    save_data("Καταγραφή_" + filename + ".ods", data)
-
-        
+            break        
 
 port = ''
 baudrate = 115200 # Default baudrate from Mind+ Arduino
 upload = False # Default value - not uploading to Thingspeak
+filename = getTimeStamp()
 
 argumentList = sys.argv[1:]
 options = "b:p:u"
@@ -132,7 +131,7 @@ if port=='':
 
 print(port, baudrate, upload)
 event = threading.Event()
-x = threading.Thread(target=alx_thread_fnc, args=(event, port, baudrate, upload))
+x = threading.Thread(target=alx_thread_fnc, args=(event, filename, port, baudrate, upload))
 x.start()
 time.sleep(5)
 input("")
