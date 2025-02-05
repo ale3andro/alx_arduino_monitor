@@ -9,7 +9,7 @@ from requests.exceptions import HTTPError
 
 try:
     apikeyfile = open("thingspeak-api-key.txt", "r")
-    apikey = apikeyfile.read()
+    apikey = apikeyfile.read().strip()
     print("Thingspeak api key:", apikey)
 except IOError:
     exit("Αδυναμία ανοίγματος αρχείου thingspeak-api-key.txt")
